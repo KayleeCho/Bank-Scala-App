@@ -1,7 +1,7 @@
 import java.time.LocalDate
 import java.util.UUID
 
-import com.h2.entities.{Account, Bank, CoreChecking, CreditCard, Customer, DepositsAccount, Dollars, Email, LendingAccount, RewardsSavings, StudentCheckings}
+import com.h2.entities.{Account, Bank, Product, CoreChecking, CreditCard, Customer, DepositsAccount, DepositsP, Dollars, Email, LendingAccount, LendingP, RewardsSavings, StudentCheckings}
 
 
 object BankOfScala {
@@ -21,12 +21,12 @@ object BankOfScala {
     println(s"Deposits Products Ids: $depositProductIds")
     println(s"LendingProductIds: $lendingProductIds")
 
-    def openAccounts(customerId: UUID, productId: UUID, productType:String ) = productType match {
-      case "Deposit" => bank.openDepositAccount(customerId, productId, _: Dollars)
-      case "Lending" => bank.openLendingAccount(customerId, productId, _: Dollars)
+    def openAccounts(customerId: UUID, product: Product) = product.category match {
+      case DepositsP => bank.openDepositAccount(customerId, product.id, _: Dollars)
+      case LendingP => bank.openLendingAccount(customerId, product.id, _: Dollars)
     }
 
-    val depositAccounts = for (c <- customerIds; p <- depositProductIds) yield openAccounts(c, p, "Deposit")
+    val depositAccounts = for (c <- customerIds; p <- depositProductIds) yield openAccounts(c, bank.getDepositProduct(p).get)
 
     val random = new scala.util.Random()
     val depositAccountIds = depositAccounts map {account => account(Dollars(10000 + random.nextInt(100000)))}
@@ -34,7 +34,7 @@ object BankOfScala {
     println(s"Deposits Accounts: $depositAccounts")
     println(s"Deposits Acount Ids: $depositAccountIds")
 
-    val lendingAccounts = for (c <- customerIds; p <- lendingProductIds) yield openAccounts(c, p, "Lending")
+    val lendingAccounts = for (c <- customerIds; p <- lendingProductIds) yield openAccounts(c, bank.getLendingProduct(p).get)
     val lendingAccountIds = lendingAccounts.map(account => account(Dollars(random.nextInt(500))))
 
     println(s"LendingAccounts: $lendingAccounts")
@@ -52,7 +52,22 @@ object BankOfScala {
 
     }
 
+    /** Statistics **/
+    println("-" * 100)
+    println("Statistics")
+    println("-" * 100)
+
+    val dAccounts = depositAccountIds flatMap {bank.getDepositAccount}
+    println(s"Total Money Deposited to Bank: ${bank.getTotalMoneyDeposited(dAccounts)}")
+
+    val lAccounts = lendingAccountIds flatMap {bank.getLendingAccount}
+    println(s"Total Money Borrowed by Customers: ${bank.getTotalMoneyBorrowedByCustomers(lAccounts)}")
+
+    val allAccounts = dAccounts ++ lAccounts
+    println(s"Number of Transactions By Account: ${bank.getNumTransactionsByAccount(allAccounts)}")
   }
+
+
 
 
   /* ------------------- Data ------------------- */

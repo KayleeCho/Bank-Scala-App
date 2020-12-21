@@ -1,14 +1,19 @@
 package com.h2.entities
 
 import java.util.UUID
+sealed trait ProductCategory
+case object DepositsP extends ProductCategory
+case object LendingP extends ProductCategory
 
 abstract class Product {
   val id: UUID = UUID.randomUUID()
+  val category: ProductCategory
   val name: String
   override def toString: String = "product=" + name
 }
 
 abstract class Deposits extends Product {
+  override val category = DepositsP
   val interestRatePerYear: Double
   val minimumBalancePerMonth: Dollars
 }
@@ -49,6 +54,7 @@ class RewardsSavings(bal: Dollars,
 
 /* --------------------- Lending Products --------------------  */
 abstract class Lending extends Product {
+  override val category = LendingP
   val annualFee: Double
   val apr: Double
   val rewardsPercent: Double
