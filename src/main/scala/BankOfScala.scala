@@ -21,7 +21,7 @@ object BankOfScala {
     println(s"Deposits Products Ids: $depositProductIds")
     println(s"LendingProductIds: $lendingProductIds")
 
-    def openAccounts(customerId: UUID, product: Product) = product.category match {
+    def openAccounts(customerId: UUID, product: Product) : Dollars => UUID = product.category match {
       case DepositsP => bank.openDepositAccount(customerId, product.id, _: Dollars)
       case LendingP => bank.openLendingAccount(customerId, product.id, _: Dollars)
     }
